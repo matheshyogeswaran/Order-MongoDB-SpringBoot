@@ -2,6 +2,7 @@ package com.crud.Order.service;
 
 
 import com.crud.Order.model.Order;
+import com.crud.Order.model.Product;
 import com.crud.Order.model.User;
 import com.crud.Order.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class OrderService {
     }
 
     public Order createOrder(Order order) {
-        Long userId = order.getUserId();
+        Long userId = order.getUserId(); // Get userId from the order
         User user = restTemplate.getForObject(USER_SERVICE_URL + userId, User.class);
 
         // Set user details in the order
@@ -38,26 +39,36 @@ public class OrderService {
         order.setUsername(user.getUsername());
 
         Long productId = order.getProductId(); // Get productId from the order
-        int stockCount = order.getStockCount(); // Get stockCount from the order
+        int reqCount = order.getReqCount(); // Get stockCount from the order
 
         // Check stock availability from the product microservice
         boolean isStockAvailable = restTemplate.getForObject(
-                PRODUCT_SERVICE_URL + productId + "/check-stock?stockCount=" + stockCount, Boolean.class);
+                PRODUCT_SERVICE_URL + productId + "/check-stock?stockCount=" + reqCount, Boolean.class);
 
         if (!isStockAvailable) {
             // Handle insufficient stock case
             System.out.println("Insufficient stock for the product");
+            // You might throw an exception or handle it according to your requirements
         }
+
+        // Retrieve the product price from the product microservice
+        double productPrice = restTemplate.getForObject(
+                PRODUCT_SERVICE_URL + productId, Product.class).getPrice(); // Assuming you have a Product class and getPrice() method
+
+        // Calculate totalAmount based on product price and stock count
+        double totalAmount = productPrice * reqCount;
+        order.setTotalAmount(totalAmount);
 
         // Save the order to your database
         Order savedOrder = orderRepository.save(order);
 
         // Deduct the ordered quantity from the product's stock count
         restTemplate.postForObject(
-                PRODUCT_SERVICE_URL + productId + "/update-stock?stockCount=" + stockCount, null, Void.class);
+                PRODUCT_SERVICE_URL + productId + "/update-stock?stockCount=" + reqCount, null, Void.class);
 
         return savedOrder;
     }
+
 
 
     public Order updateOrder(String id, Order order) {

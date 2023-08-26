@@ -8,11 +8,19 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Order {
     @Id
     private String id;
-    private String orderNumber;
+
     private double totalAmount;
     private Long userId; // Add a field to store the userId
     private Long productId; // Add productId field
-    private int stockCount; // Add stockCount field
+    private int reqCount; // Add stockCount field
+
+    public int getReqCount() {
+        return reqCount;
+    }
+
+    public void setReqCount(int reqCount) {
+        this.reqCount = reqCount;
+    }
 
     public Long getProductId() {
         return productId;
@@ -22,13 +30,6 @@ public class Order {
         this.productId = productId;
     }
 
-    public int getStockCount() {
-        return stockCount;
-    }
-
-    public void setStockCount(int stockCount) {
-        this.stockCount = stockCount;
-    }
 
     public String getUsername() {
         return username;
@@ -49,13 +50,7 @@ public class Order {
         this.id = id;
     }
 
-    public String getOrderNumber() {
-        return orderNumber;
-    }
 
-    public void setOrderNumber(String orderNumber) {
-        this.orderNumber = orderNumber;
-    }
 
     public double getTotalAmount() {
         return totalAmount;
